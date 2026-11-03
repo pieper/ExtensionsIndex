@@ -1,0 +1,20 @@
+name: Triage dashboard relay
+
+# Review events on pull requests from forks run with a read-only token and cannot deploy Pages.
+# This workflow does nothing except finish; its completion triggers "Triage dashboard" through
+# workflow_run, which runs from the default branch with the permissions it needs.
+
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+
+permissions: {}
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: echo "Review activity on PR #${{ github.event.pull_request.number }}; the dashboard will refresh."

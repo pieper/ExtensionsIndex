@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>ExtensionsIndex Triage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&amp;family=Source+Code+Pro:wght@400;600&amp;family=Fraunces:opsz,wght@9..144,600&amp;display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="titlerow">
+      <h1>ExtensionsIndex Triage</h1>
+      <div class="whoami">
+        <label for="me">You are</label>
+        <input id="me" list="maintainer-list" placeholder="GitHub login" autocomplete="off" spellcheck="false">
+        <datalist id="maintainer-list"></datalist>
+      </div>
+    </div>
+    <p class="sub"><span id="repo-link"></span> <span id="live" class="live" role="status" aria-live="polite">Loading…</span></p>
+  </header>
+  <noscript><p>This page needs JavaScript to show the dashboard.</p></noscript>
+  <section id="tiles" class="tiles" aria-label="Summary"></section>
+  <section id="mine-section"></section>
+  <section id="new-section"></section>
+  <section id="ignore-section"></section>
+  <section id="chart-section"></section>
+  <section id="all-section">
+    <h2>All extension PRs</h2>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Filter by name, author or number" aria-label="Filter pull requests">
+      <div class="fbtns" id="filters"></div>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+  <section id="infra-section" class="infra"></section>
+  <footer id="foot"></footer>
+</div>
+</body>
+</html>

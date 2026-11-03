@@ -1,0 +1,87 @@
+name: Triage dashboard
+
+# Rebuilds the maintainer triage dashboard (GitHub Pages) whenever pull requests change.
+#
+# SECURITY: this workflow only reads the GitHub API and the extensions' source as text. It never
+# checks out or runs code from a pull request or an extension. pull_request_target and issue_comment
+# runs use the workflow file from the default branch, so a pull request cannot change what runs here.
+# Reviews arrive through the "Triage dashboard relay" workflow (see triage-dashboard-relay.yml).
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, closed, labeled, unlabeled, assigned, unassigned,
+            review_requested, review_request_removed, ready_for_review, converted_to_draft]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_run:
+    workflows: ["Extension Validation", "Extension AI Analysis", "Package Python Extension", "Triage dashboard relay"]
+    types: [completed]
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Re-check every extension source repository (ignore the cache)"
+        type: boolean
+        default: false
+  push:
+    branches: [main, triage-dashboard]
+    paths:
+      - "scripts/triage_dashboard/**"
+      - ".github/workflows/triage-dashboard.yml"
+
+permissions: {}
+
+# One run at a time; a newer waiting run replaces an older waiting one. Each run refreshes every PR
+# that changed since the last snapshot, so nothing is lost when events are collapsed.
+concurrency:
+  group: triage-dashboard
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      # The repository whose pull requests are shown. A fork used for a demo still shows the upstream index.
+      TRIAGE_REPO: ${{ vars.TRIAGE_REPO || 'Slicer/ExtensionsIndex' }}
+    steps:
+      - name: Checkout the default branch (trusted scripts only)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Generate data
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FULL: ${{ inputs.full && '--full' || '' }}
+          DEFAULT_ME: ${{ vars.TRIAGE_DEFAULT_ME }}
+        run: |
+          PAGES_URL="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}"
+          mkdir -p _site
+          cp scripts/triage_dashboard/site/* _site/
+          python3 -I scripts/triage_dashboard/generate.py \
+            --repo "$TRIAGE_REPO" --out _site \
+            --previous "$PAGES_URL/data.json" \
+            --run-url "$RUN_URL" \
+            ${DEFAULT_ME:+--default-me "$DEFAULT_ME"} $FULL
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
