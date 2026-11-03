@@ -1,0 +1,38 @@
+# GitHub logins treated as maintainers, in addition to anyone GitHub reports as an owner, member or
+# collaborator. Needed because private organization membership is invisible to the workflow's token.
+# Generated from the people with push access to Slicer/ExtensionsIndex; edit by pull request.
+adamrankin
+AlexyPellegrini
+allemangD
+andinet
+aylward
+bpaniagua
+chrismullins
+Connor-Bowley
+cpinter
+dzenanz
+ebrahimebrahim
+fbudin69500
+fedorov
+finetjul
+hjmjohnson
+ihnorton
+jadh4v
+jamesobutler
+jcfr
+johan-andruejol
+lassoan
+Leengit
+mhalle
+msmolens
+naucoin
+phcerdan
+pieper
+Pierre-Assemat
+sankhesh
+sjh26
+sumedhasingla
+Sunderlandkyl
+thewtex
+Thibault-Pelletier
+tom-osika

@@ -42,6 +42,7 @@ SCHEMA = 1
 SCAN_VERSION = 3  # bump when scan_source changes, so cached scans are redone
 
 TOKEN = None
+MAINTAINERS = set()  # lower-case logins from maintainers.txt
 STATS = {"rest": 0, "graphql": 0, "raw": 0}
 
 
@@ -491,7 +492,7 @@ def analyze(pr, pending_runs, src):
     def role(login, assoc):
         if login == author:
             return "contributor"
-        return "maintainer" if assoc in MAINTAINER_ASSOCIATIONS else "other"
+        return "maintainer" if assoc in MAINTAINER_ASSOCIATIONS or login.lower() in MAINTAINERS else "other"
 
     events = []
     for c in pr["comments"]["nodes"]:
@@ -665,6 +666,14 @@ def load_previous(where):
         return {}
 
 
+def load_maintainers(path):
+    try:
+        with open(path) as f:
+            return {line.split("#", 1)[0].strip().lower() for line in f} - {""}
+    except OSError:
+        return set()
+
+
 def strip_volatile(o):
     if isinstance(o, dict):
         return {k: strip_volatile(v) for k, v in o.items() if k not in ("checked_at", "computed_at")}
@@ -681,9 +690,12 @@ def main():
     ap.add_argument("--previous", help="Previous data.json (URL or path), reused as a cache")
     ap.add_argument("--default-me", help="GitHub login preselected in the page's 'You are' menu")
     ap.add_argument("--run-url", help="Link to the workflow run that produced this snapshot")
+    ap.add_argument("--maintainers", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "maintainers.txt"),
+                    help="File of maintainer logins, one per line")
     ap.add_argument("--full", action="store_true", help="Ignore the cache and re-check every source repository")
     args = ap.parse_args()
     TOKEN = token()
+    MAINTAINERS.update(load_maintainers(args.maintainers))
     owner, name = args.repo.split("/")
     now = now_utc()
     prev = {} if args.full else load_previous(args.previous)
